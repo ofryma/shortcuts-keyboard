@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Helper script to easily add new shortcuts to the shortcuts.json file.
+Helper script to easily add new shortcuts to the shortcuts folder structure.
 Usage: python add_shortcut.py
 """
 
@@ -26,14 +26,8 @@ def get_svg_icon_examples():
 
 def add_shortcut():
     """Interactive function to add a new shortcut"""
-    shortcuts_file = Path(__file__).parent / "shortcuts.json"
-    
-    # Read existing shortcuts
-    if shortcuts_file.exists():
-        with open(shortcuts_file, "r") as f:
-            data = json.load(f)
-    else:
-        data = {"shortcuts": []}
+    shortcuts_dir = Path(__file__).parent / "shortcuts"
+    shortcuts_dir.mkdir(exist_ok=True)
     
     print("=" * 60)
     print("Add New Shortcut")
@@ -43,10 +37,10 @@ def add_shortcut():
     # Get shortcut details
     shortcut_id = input("Enter shortcut ID (lowercase, no spaces, e.g., 'vscode'): ").strip()
     
-    # Check if ID already exists
-    existing_ids = [s["id"] for s in data["shortcuts"]]
-    if shortcut_id in existing_ids:
-        print(f"\n❌ Error: Shortcut with ID '{shortcut_id}' already exists!")
+    # Check if shortcut folder already exists
+    shortcut_folder = shortcuts_dir / shortcut_id
+    if shortcut_folder.exists():
+        print(f"\n❌ Error: Shortcut folder '{shortcut_id}' already exists!")
         return
     
     label = input("Enter display label (e.g., 'Visual Studio Code'): ").strip()
@@ -54,26 +48,19 @@ def add_shortcut():
     
     # Icon selection
     print("\nIcon Options:")
-    print("1. Use emoji (e.g., '🎨')")
+    print("1. Skip logo (use default avatar with first letter)")
     print("2. Use custom SVG")
     print("3. Choose from example SVGs")
     
     icon_choice = input("\nSelect option (1-3): ").strip()
     
-    icon_data = {
-        "type": "",
-        "data": ""
-    }
+    logo_svg = None
     
     if icon_choice == "1":
-        emoji = input("Enter emoji: ").strip()
-        icon_data["type"] = "emoji"
-        icon_data["data"] = emoji
+        print(f"\n✅ Will use default avatar with letter '{label[0].upper()}'")
     elif icon_choice == "2":
         print("\nPaste your SVG code (should start with '<svg' and end with '</svg>'):")
-        svg_code = input().strip()
-        icon_data["type"] = "svg"
-        icon_data["data"] = svg_code
+        logo_svg = input().strip()
     elif icon_choice == "3":
         examples = get_svg_icon_examples()
         print("\nAvailable examples:")
@@ -84,50 +71,67 @@ def add_shortcut():
         example_names = list(examples.keys())
         if example_choice.isdigit() and 1 <= int(example_choice) <= len(example_names):
             selected_example = example_names[int(example_choice) - 1]
-            icon_data["type"] = "svg"
-            icon_data["data"] = examples[selected_example]
+            logo_svg = examples[selected_example]
         else:
             print("Invalid choice, using default document icon")
-            icon_data["type"] = "svg"
-            icon_data["data"] = examples["document"]
+            logo_svg = examples["document"]
     else:
-        print("Invalid choice, using emoji fallback")
-        icon_data["type"] = "emoji"
-        icon_data["data"] = "📱"
+        print("Invalid choice, will use default avatar")
     
-    # Create new shortcut
-    new_shortcut = {
+    # Create shortcut folder
+    shortcut_folder.mkdir(parents=True, exist_ok=True)
+    
+    # Create config.json
+    config = {
         "id": shortcut_id,
         "label": label,
-        "appName": app_name,
-        "icon": icon_data
+        "appName": app_name
     }
     
-    # Add to shortcuts list
-    data["shortcuts"].append(new_shortcut)
+    config_file = shortcut_folder / "config.json"
+    with open(config_file, "w") as f:
+        json.dump(config, f, indent=2)
     
-    # Save to file
-    with open(shortcuts_file, "w") as f:
-        json.dump(data, f, indent=2)
+    # Create logo.svg if provided
+    if logo_svg:
+        logo_file = shortcut_folder / "logo.svg"
+        with open(logo_file, "w") as f:
+            f.write(logo_svg)
+        print(f"\n✅ Created logo.svg")
     
     print("\n" + "=" * 60)
-    print(f"✅ Successfully added '{label}' shortcut!")
+    print(f"✅ Successfully created '{label}' shortcut!")
+    print(f"📁 Location: shortcuts/{shortcut_id}/")
     print("=" * 60)
-    print("\nRestart your server or refresh your browser to see the new shortcut.")
+    print("\nRefresh your browser to see the new shortcut.")
 
 
 def list_shortcuts():
     """List all existing shortcuts"""
-    shortcuts_file = Path(__file__).parent / "shortcuts.json"
+    shortcuts_dir = Path(__file__).parent / "shortcuts"
     
-    if not shortcuts_file.exists():
-        print("No shortcuts file found!")
+    if not shortcuts_dir.exists():
+        print("No shortcuts folder found!")
         return
     
-    with open(shortcuts_file, "r") as f:
-        data = json.load(f)
-    
-    shortcuts = data.get("shortcuts", [])
+    shortcuts = []
+    for shortcut_folder in shortcuts_dir.iterdir():
+        if not shortcut_folder.is_dir():
+            continue
+        
+        config_file = shortcut_folder / "config.json"
+        if not config_file.exists():
+            continue
+        
+        try:
+            with open(config_file, "r") as f:
+                config = json.load(f)
+            
+            logo_file = shortcut_folder / "logo.svg"
+            config["hasLogo"] = logo_file.exists()
+            shortcuts.append(config)
+        except Exception as e:
+            print(f"Error reading {shortcut_folder.name}: {e}")
     
     if not shortcuts:
         print("No shortcuts configured yet.")
@@ -141,12 +145,13 @@ def list_shortcuts():
         print(f"\nID: {shortcut['id']}")
         print(f"Label: {shortcut['label']}")
         print(f"App: {shortcut['appName']}")
-        print(f"Icon Type: {shortcut['icon']['type']}")
+        logo_status = "✓ Has logo.svg" if shortcut['hasLogo'] else "✗ No logo (using default avatar)"
+        print(f"Logo: {logo_status}")
         print("-" * 40)
 
 
 if __name__ == "__main__":
-    print("\n🚀 Shortcuts Panel - Shortcut Manager\n")
+    print("\n🚀 Shortcuts Panel - Shortcut Manager (v2)\n")
     
     while True:
         print("\nWhat would you like to do?")

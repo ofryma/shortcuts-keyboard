@@ -24,7 +24,7 @@ shortcuts/
 
 **Easiest way:**
 ```bash
-python add_shortcut_v2.py
+python add_shortcut.py
 ```
 
 **Manual way:**

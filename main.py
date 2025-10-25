@@ -123,7 +123,7 @@ async def get_ip():
     if ip:
         return {
             "ip": ip,
-            "url": f"http://{ip}:8000"
+            "url": f"http://{ip}:8765"
         }
     else:
         raise HTTPException(status_code=500, detail="Could not determine local IP address")
@@ -326,9 +326,9 @@ if __name__ == "__main__":
         logger.info("=" * 60)
         logger.info("🚀 Shortcuts Panel Server Starting")
         logger.info("=" * 60)
-        logger.info(f"📱 Access from your phone: http://{local_ip}:8000")
-        logger.info("💻 Access from this Mac: http://localhost:8000")
+        logger.info(f"📱 Access from your phone: http://{local_ip}:8765")
+        logger.info("💻 Access from this Mac: http://localhost:8765")
         logger.info("=" * 60)
     
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8765, reload=True)
 

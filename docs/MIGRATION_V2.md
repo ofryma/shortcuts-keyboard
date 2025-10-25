@@ -42,10 +42,9 @@ shortcuts/
 
 ### 1. Use the New Helper Script
 
-**Old:** `python add_shortcut.py`  
-**New:** `python add_shortcut_v2.py`
+Use: `python add_shortcut.py`
 
-The new script creates folders and files for you.
+The script creates folders and files for you.
 
 ### 2. API Changes
 
@@ -108,7 +107,7 @@ It's already been added to `.gitignore` to prevent accidentally committing it.
 ### Quick Start
 
 ```bash
-python add_shortcut_v2.py
+python add_shortcut.py
 ```
 
 ### Manual Creation
@@ -152,7 +151,6 @@ New documentation files:
 
 Old documentation (deprecated):
 - **SHORTCUTS_SYSTEM.md** - Describes the old JSON-based system
-- **add_shortcut.py** - Old helper script (use `add_shortcut_v2.py` instead)
 
 ## Troubleshooting
 
@@ -169,7 +167,7 @@ Old documentation (deprecated):
 ### Need help?
 Run the helper script for an interactive guide:
 ```bash
-python add_shortcut_v2.py
+python add_shortcut.py
 ```
 
 ## Summary
@@ -177,7 +175,7 @@ python add_shortcut_v2.py
 🎉 **You're all set!** Your shortcuts have been migrated and the new system is ready to use.
 
 **Quick commands:**
-- Add shortcuts: `python add_shortcut_v2.py`
+- Add shortcuts: `python add_shortcut.py`
 - View structure: `ls -R shortcuts/`
 - Read docs: Open `FOLDER_STRUCTURE.md`
 

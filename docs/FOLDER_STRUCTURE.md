@@ -56,7 +56,7 @@ An SVG file that serves as the icon for the button. If not provided, the UI will
 ### Method 1: Helper Script (Recommended)
 
 ```bash
-python add_shortcut_v2.py
+python add_shortcut.py
 ```
 
 This interactive script will:
@@ -133,13 +133,13 @@ Some apps include SVG icons in their packages:
 ```
 
 ### Option 3: Use Helper Script Examples
-The `add_shortcut_v2.py` script includes 10 pre-made SVG icons you can use.
+The `add_shortcut.py` script includes 10 pre-made SVG icons you can use.
 
 ## Managing Shortcuts
 
 ### View All Shortcuts
 ```bash
-python add_shortcut_v2.py
+python add_shortcut.py
 # Select option 2
 ```
 
@@ -260,5 +260,5 @@ shortcuts/
 
 ---
 
-**Need help?** Run `python add_shortcut_v2.py` for an interactive guide!
+**Need help?** Run `python add_shortcut.py` for an interactive guide!
 
