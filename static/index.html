@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortcuts Panel</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --accent-primary: #667eea;
+            --accent-hover: #5568d3;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0f172a;
+                --bg-secondary: #1e293b;
+                --bg-card: #1e293b;
+                --text-primary: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border-color: #334155;
+                --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+                --accent-primary: #818cf8;
+                --accent-hover: #6366f1;
+                --success: #34d399;
+                --error: #f87171;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .shortcut-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .shortcut-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
+        }
+
+        .shortcut-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .shortcut-btn.loading {
+            opacity: 0.6;
+            cursor: wait;
+            pointer-events: none;
+        }
+
+        .shortcut-icon {
+            font-size: 3em;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+        }
+
+        .shortcut-icon svg {
+            width: 48px;
+            height: 48px;
+            color: var(--accent-primary);
+        }
+
+        .shortcut-icon img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .default-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .shortcut-label {
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .status-message {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            text-align: center;
+            margin-top: 16px;
+            box-shadow: var(--shadow-sm);
+            display: none;
+            animation: slideIn 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-message.success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .status-message.error {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ip-info-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 24px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+
+        .ip-info-box h2 {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ip-address {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 4px 0;
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+        }
+
+        .ip-url {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .copy-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 0.7em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            .shortcuts-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+            }
+
+            .shortcut-btn {
+                padding: 28px 16px;
+            }
+
+            .shortcut-icon {
+                font-size: 2.5em;
+            }
+
+            .shortcut-label {
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="shortcutsGrid" class="shortcuts-grid">
+            <!-- Shortcuts will be dynamically loaded here -->
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div class="ip-info-box">
+            <h2>Access from your phone</h2>
+            <div id="ipAddress" class="ip-address loading-text">Loading IP address...</div>
+            <div id="ipUrl" class="ip-url"></div>
+            <button id="copyBtn" class="copy-btn" onclick="copyToClipboard()" style="display: none;">
+                Copy URL
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Store shortcuts data globally
+        let shortcutsData = [];
+
+        async function openApp(appName) {
+            const button = event.currentTarget;
+            
+            // Add loading state
+            button.classList.add('loading');
+            
+            try {
+                const response = await fetch('/api/open-app', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ app_name: appName })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Only log errors to console, no UI notification
+                    console.error(`Failed to open ${appName}:`, data.detail);
+                }
+            } catch (error) {
+                // Only log errors to console, no UI notification
+                console.error(`Error opening ${appName}:`, error.message);
+            } finally {
+                button.classList.remove('loading');
+            }
+        }
+
+        // Load and render shortcuts dynamically
+        async function loadShortcuts() {
+            try {
+                const response = await fetch('/api/shortcuts');
+                const data = await response.json();
+                
+                if (data.shortcuts && Array.isArray(data.shortcuts)) {
+                    shortcutsData = data.shortcuts;
+                    renderShortcuts(data.shortcuts);
+                } else {
+                    showStatus('⚠️ No shortcuts configured', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading shortcuts:', error);
+                showStatus('❌ Failed to load shortcuts', 'error');
+            }
+        }
+
+        // Render shortcuts to the grid
+        function renderShortcuts(shortcuts) {
+            const grid = document.getElementById('shortcutsGrid');
+            grid.innerHTML = '';
+            
+            if (shortcuts.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-secondary);">No shortcuts configured. Add some via the API!</div>';
+                return;
+            }
+            
+            shortcuts.forEach(shortcut => {
+                const button = document.createElement('button');
+                button.className = 'shortcut-btn';
+                button.onclick = () => openApp(shortcut.appName);
+                
+                // Create icon element
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'shortcut-icon';
+                
+                if (shortcut.hasLogo) {
+                    // Display logo.svg from the API
+                    const img = document.createElement('img');
+                    img.src = `/api/shortcuts/${shortcut.id}/logo.svg`;
+                    img.alt = `${shortcut.label} logo`;
+                    img.onerror = () => {
+                        // If logo fails to load, show default avatar
+                        iconSpan.innerHTML = '';
+                        iconSpan.appendChild(createDefaultAvatar(shortcut.label));
+                    };
+                    iconSpan.appendChild(img);
+                } else {
+                    // Show default avatar with first letter
+                    iconSpan.appendChild(createDefaultAvatar(shortcut.label));
+                }
+                
+                // Create label element
+                const labelSpan = document.createElement('span');
+                labelSpan.className = 'shortcut-label';
+                labelSpan.textContent = shortcut.label;
+                
+                button.appendChild(iconSpan);
+                button.appendChild(labelSpan);
+                grid.appendChild(button);
+            });
+        }
+
+        // Create a default avatar with the first letter
+        function createDefaultAvatar(label) {
+            const avatar = document.createElement('div');
+            avatar.className = 'default-avatar';
+            avatar.textContent = label.charAt(0).toUpperCase();
+            return avatar;
+        }
+
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message show ${type}`;
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fetch and display IP address
+        async function fetchIPAddress() {
+            try {
+                const response = await fetch('/api/ip');
+                const data = await response.json();
+                
+                document.getElementById('ipAddress').textContent = data.ip;
+                document.getElementById('ipAddress').classList.remove('loading-text');
+                document.getElementById('ipUrl').textContent = data.url;
+                document.getElementById('copyBtn').style.display = 'inline-block';
+                
+                // Store URL for copying
+                window.serverUrl = data.url;
+            } catch (error) {
+                document.getElementById('ipAddress').textContent = 'Unable to detect IP';
+                document.getElementById('ipAddress').classList.remove('loading-text');
+                console.error('Error fetching IP:', error);
+            }
+        }
+
+        // Copy URL to clipboard
+        async function copyToClipboard() {
+            try {
+                await navigator.clipboard.writeText(window.serverUrl);
+                const copyBtn = document.getElementById('copyBtn');
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                showStatus('❌ Failed to copy', 'error');
+            }
+        }
+
+        // Check server health, fetch IP, and load shortcuts on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    console.log('Server is healthy');
+                    await Promise.all([
+                        fetchIPAddress(),
+                        loadShortcuts()
+                    ]);
+                }
+            } catch (error) {
+                showStatus('⚠️ Cannot connect to server', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

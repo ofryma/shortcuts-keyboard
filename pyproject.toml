@@ -1,0 +1,15 @@
+[project]
+name = "shortcuts-panel"
+version = "0.1.0"
+description = "A web-based shortcuts panel to trigger commands on macOS"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
