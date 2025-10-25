@@ -419,20 +419,53 @@
             }
         }
 
-        // Copy URL to clipboard
+        // Copy URL to clipboard with multiple fallback methods
         async function copyToClipboard() {
-            try {
-                await navigator.clipboard.writeText(window.serverUrl);
-                const copyBtn = document.getElementById('copyBtn');
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = 'Copied!';
-                
-                setTimeout(() => {
-                    copyBtn.textContent = originalText;
-                }, 2000);
-            } catch (error) {
-                showStatus('❌ Failed to copy', 'error');
+            const textToCopy = window.serverUrl;
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = copyBtn.textContent;
+            
+            // Method 1: Modern Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                    return;
+                } catch (error) {
+                    console.log('Clipboard API failed, trying fallback:', error);
+                }
             }
+            
+            // Method 2: Legacy execCommand (works better on mobile)
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = textToCopy;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                    return;
+                }
+            } catch (error) {
+                console.log('execCommand failed:', error);
+            }
+            
+            // Method 3: Show error with helpful message
+            showStatus('❌ Copy failed. Long-press the URL above to copy manually', 'error');
         }
 
         // Check server health, fetch IP, and load shortcuts on load
